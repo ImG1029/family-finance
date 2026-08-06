@@ -1,0 +1,40 @@
+name: Backend CI (Spring Boot)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yaml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - './github/worklows/backend-ci.yaml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure JDK 25 (Corretto)
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'corretto'
+          cache: 'maven'
+
+      - name: Give execution permission to Maven Wrapper
+        run: chmod +x mvnw
+
+      - name: Execute unit and integration tests
+        run: ./mvnw test

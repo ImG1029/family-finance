@@ -1,0 +1,25 @@
+## IDE
+
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+## Backend
+
+backend/target/
+backend/build/
+backend/*.jar
+
+## Frontend
+
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+## Environment & logs
+
+*.log
+*.env
+*.env.local
