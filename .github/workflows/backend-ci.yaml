@@ -13,7 +13,7 @@ on:
       - main
     paths:
       - 'backend/**'
-      - './github/worklows/backend-ci.yaml'
+      - '.github/worklows/backend-ci.yaml'
 
 jobs:
   build-and-test:
