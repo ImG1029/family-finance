@@ -5,15 +5,17 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yaml'
   pull_request:
     branches:
       - main
+      - dev
     paths:
       - 'backend/**'
-      - '.github/worklows/backend-ci.yaml'
+      - '.github/workflows/backend-ci.yaml'
 
 jobs:
   build-and-test:

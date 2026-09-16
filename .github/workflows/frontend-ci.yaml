@@ -5,18 +5,20 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yaml'
   pull_request:
     branches:
       - main
+      - dev
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yaml'
 
 jobs:
-  build_and_test:
+  build-and-test:
     runs-on: ubuntu-22.04
     defaults:
       run:
