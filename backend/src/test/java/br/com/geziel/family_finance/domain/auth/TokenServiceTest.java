@@ -59,10 +59,10 @@ public class TokenServiceTest {
 
         String validToken = tokenService.generateToken(mockUser);
 
-        String subject = tokenService.validateTokenAndGetSubject(validToken);
+        Claims claims = tokenService.validateTokenAndGetClaims(validToken);
 
-        assertNotNull(subject);
-        assertEquals(mockUser.getId().toString(), subject);
+        assertNotNull(claims);
+        assertEquals(mockUser.getId().toString(), claims.getSubject());
     }
 
     @Test
@@ -75,9 +75,9 @@ public class TokenServiceTest {
                 .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
                 .compact();
 
-        String subject = tokenService.validateTokenAndGetSubject(expiredToken);
+        Claims claims = tokenService.validateTokenAndGetClaims(expiredToken);
 
-        assertNull(subject);
+        assertNull(claims);
     }
 
     @Test
@@ -92,17 +92,17 @@ public class TokenServiceTest {
                 .signWith(Keys.hmacShaKeyFor(fakeJwtSecret.getBytes()))
                 .compact();
 
-        String subject = tokenService.validateTokenAndGetSubject(forgedToken);
+        Claims claims = tokenService.validateTokenAndGetClaims(forgedToken);
 
-        assertNull(subject);
+        assertNull(claims);
     }
 
     @Test
     void ValidateToken_WhenTokenMalformedOrEdited_ReturnsNull() {
         String fakeJwt = "this-is.a-fake.jwt-token";
 
-        String subject = tokenService.validateTokenAndGetSubject(fakeJwt);
+        Claims claims = tokenService.validateTokenAndGetClaims(fakeJwt);
 
-        assertNull(subject);
+        assertNull(claims);
     }
 }

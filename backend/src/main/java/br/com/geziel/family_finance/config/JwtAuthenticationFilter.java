@@ -2,7 +2,7 @@ package br.com.geziel.family_finance.config;
 
 import br.com.geziel.family_finance.domain.auth.TokenService;
 import br.com.geziel.family_finance.domain.user.User;
-import br.com.geziel.family_finance.domain.user.UserRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,15 +13,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenService tokenService;
-    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(TokenService tokenService, UserRepository userRepository) {
+    public JwtAuthenticationFilter(TokenService tokenService) {
         this.tokenService = tokenService;
-        this.userRepository = userRepository;
     }
 
     private String recoverToken(HttpServletRequest request) {
@@ -34,15 +33,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = this.recoverToken(request);
+        String token = recoverToken(request);
         if (token != null) {
-            String email = tokenService.validateTokenAndGetSubject(token);
-            if (email != null) {
-                User user = userRepository.findByEmail(email).orElse(null);
-                if (user != null) {
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+            Claims claims = tokenService.validateTokenAndGetClaims(token);
+            if (claims != null) {
+                User user = new User();
+                user.setId(UUID.fromString(claims.getSubject()));
+                user.setEmail(claims.get("email", String.class));
+                user.setName(claims.get("name", String.class));
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
         filterChain.doFilter(request, response);

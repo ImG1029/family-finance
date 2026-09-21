@@ -1,6 +1,7 @@
 package br.com.geziel.family_finance.domain.auth;
 
 import br.com.geziel.family_finance.domain.user.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,14 +45,13 @@ public class TokenService {
                 .compact();
     }
 
-    public String validateTokenAndGetSubject(String token) {
+    public Claims validateTokenAndGetClaims(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token)
-                    .getPayload()
-                    .getSubject();
+                    .getPayload();
         } catch (Exception e) {
             return null;
         }
