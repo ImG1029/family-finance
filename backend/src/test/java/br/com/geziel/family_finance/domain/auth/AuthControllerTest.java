@@ -2,14 +2,13 @@ package br.com.geziel.family_finance.domain.auth;
 
 import br.com.geziel.family_finance.BaseIntegrationTest;
 import br.com.geziel.family_finance.domain.auth.dto.LoginRequestDTO;
-import br.com.geziel.family_finance.domain.auth.dto.RefreshRequestDTO;
 import br.com.geziel.family_finance.domain.auth.dto.RegisterRequestDTO;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
-import java.util.UUID;
-
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,7 +28,7 @@ class AuthControllerTest extends BaseIntegrationTest {
 // ------------------------------------------------------------------------------------------------------------------ //
 
     @Test
-    void login_WithValidCredentials_ReturnsTokens() throws Exception {
+    void login_WithValidCredentials_ReturnsTokensAndCookie() throws Exception {
         LoginRequestDTO request = new LoginRequestDTO("test@email.com", "Password123");
 
         mockMvc.perform(post("/api/authentication/login")
@@ -37,7 +36,10 @@ class AuthControllerTest extends BaseIntegrationTest {
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists());
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andExpect(cookie().exists("refreshToken"))
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(cookie().secure("refreshToken", true));
     }
 
     @Test
@@ -74,8 +76,6 @@ class AuthControllerTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(201))
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
                 .andExpect(jsonPath("$.tokenType").isNotEmpty());
 
         assertTrue(userRepository.existsByEmail(request.email()));
@@ -103,35 +103,27 @@ class AuthControllerTest extends BaseIntegrationTest {
     void refresh_WithValidToken_ReturnsOk() throws Exception {
         LoginRequestDTO loginRequest = new LoginRequestDTO("test@email.com", "Password123");
 
-        String loginResponse = mockMvc.perform(post("/api/authentication/login")
+        Cookie refreshCookie = mockMvc.perform(post("/api/authentication/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn().getResponse().getCookie("refreshToken");
 
-        String validRefreshToken = objectMapper.readTree(loginResponse).get("refreshToken").asString();
-
-        RefreshRequestDTO refreshRequest = new RefreshRequestDTO(UUID.fromString(validRefreshToken));
+        assertNotNull(refreshCookie);
 
         mockMvc.perform(post("/api/authentication/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(refreshRequest)))
+                        .cookie(refreshCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
-                .andExpect(jsonPath("$.refreshToken").value(org.hamcrest.Matchers.not(validRefreshToken)));
+                .andExpect(cookie().value("refreshToken", org.hamcrest.Matchers.not(refreshCookie.getValue())));
 
     }
 
     @Test
-    void refresh_WithInvalid_ReturnsBadRequest() throws Exception {
-        RefreshRequestDTO refreshRequest = new RefreshRequestDTO(UUID.randomUUID());
-
+    void refresh_WithMissingCookie_ReturnsBadRequest() throws Exception {
         mockMvc.perform(post("/api/authentication/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(refreshRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Invalid refresh token"));
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
 // ------------------------------------------------------------------------------------------------------------------ //
@@ -142,20 +134,19 @@ class AuthControllerTest extends BaseIntegrationTest {
     void logout_ReturnsNoContent() throws Exception {
         LoginRequestDTO loginRequest = new LoginRequestDTO("test@email.com", "Password123");
 
-        String loginResponse = mockMvc.perform(post("/api/authentication/login")
+        Cookie loginResponse = mockMvc.perform(post("/api/authentication/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn().getResponse().getCookie("refreshToken");
 
-        String validRefreshToken = objectMapper.readTree(loginResponse).get("refreshToken").asString();
-
-        RefreshRequestDTO request = new RefreshRequestDTO(UUID.fromString(validRefreshToken));
+        Cookie cookie = new Cookie("refreshToken", loginResponse.getValue());
 
         mockMvc.perform(post("/api/authentication/logout")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNoContent());
+                        .cookie(cookie))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().exists("refreshToken"))
+                .andExpect(cookie().maxAge("refreshToken", 0));
     }
 
 }

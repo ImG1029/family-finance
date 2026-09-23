@@ -2,7 +2,6 @@ package br.com.geziel.family_finance.domain.auth;
 
 import br.com.geziel.family_finance.domain.auth.dto.AuthResponseDTO;
 import br.com.geziel.family_finance.domain.auth.dto.LoginRequestDTO;
-import br.com.geziel.family_finance.domain.auth.dto.RefreshRequestDTO;
 import br.com.geziel.family_finance.domain.auth.dto.RegisterRequestDTO;
 import br.com.geziel.family_finance.domain.user.User;
 import br.com.geziel.family_finance.domain.user.UserRepository;
@@ -180,17 +179,15 @@ public class AuthServiceTest {
 
     @Test
     void refresh_WhenTokenValid_ReturnsTokens() {
-        RefreshRequestDTO request = new RefreshRequestDTO(UUID.randomUUID());
-
         User mockUser = new User();
         mockUser.setId(UUID.randomUUID());
 
         RefreshToken oldMockRefreshToken = new RefreshToken();
-        oldMockRefreshToken.setToken(request.refreshToken());
+        oldMockRefreshToken.setToken(UUID.randomUUID());
         oldMockRefreshToken.setUser(mockUser);
         oldMockRefreshToken.setRevoked(false);
 
-        when(refreshTokenService.verifyValidity(request.refreshToken())).thenReturn(oldMockRefreshToken);
+        when(refreshTokenService.verifyValidity(oldMockRefreshToken.getToken())).thenReturn(oldMockRefreshToken);
 
         when(tokenService.generateToken(mockUser)).thenReturn("mocked.jwt.token");
 
@@ -199,7 +196,7 @@ public class AuthServiceTest {
 
         when(refreshTokenService.createRefreshToken(mockUser)).thenReturn(newMockRefreshToken);
 
-        AuthResponseDTO response = authService.refreshToken(request);
+        AuthResponseDTO response = authService.refreshToken(oldMockRefreshToken.getToken());
 
         assertNotNull(response);
         assertEquals("mocked.jwt.token", response.accessToken());
@@ -208,25 +205,25 @@ public class AuthServiceTest {
 
         assertTrue(oldMockRefreshToken.isRevoked());
 
-        verify(refreshTokenService, times(1)).verifyValidity(request.refreshToken());
+        verify(refreshTokenService, times(1)).verifyValidity(oldMockRefreshToken.getToken());
         verify(tokenService, times(1)).generateToken(mockUser);
         verify(refreshTokenService, times(1)).createRefreshToken(mockUser);
     }
 
     @Test
     void refresh_WhenTokenInvalid_ThrowsException() {
-        RefreshRequestDTO request = new RefreshRequestDTO(UUID.randomUUID());
+        UUID refreshToken = UUID.randomUUID();
 
-        when(refreshTokenService.verifyValidity(request.refreshToken()))
+        when(refreshTokenService.verifyValidity(refreshToken))
                 .thenThrow(new IllegalArgumentException("Invalid refresh token"));
 
         IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class, () -> authService.refreshToken(request)
+                IllegalArgumentException.class, () -> authService.refreshToken(refreshToken)
         );
 
         assertEquals("Invalid refresh token", exception.getMessage());
 
-        verify(refreshTokenService, times(1)).verifyValidity(request.refreshToken());
+        verify(refreshTokenService, times(1)).verifyValidity(refreshToken);
 
         verifyNoInteractions(tokenService);
         verify(refreshTokenService, never()).createRefreshToken(any());
@@ -234,18 +231,18 @@ public class AuthServiceTest {
 
     @Test
     void refresh_WhenTokenRevoked_throwsException() {
-        RefreshRequestDTO request = new RefreshRequestDTO(UUID.randomUUID());
+        UUID refreshToken = UUID.randomUUID();
 
-        when(refreshTokenService.verifyValidity(request.refreshToken()))
+        when(refreshTokenService.verifyValidity(refreshToken))
                 .thenThrow(new IllegalStateException("Refresh token already revoked"));
 
         IllegalStateException exception = assertThrows(
-                IllegalStateException.class, () -> authService.refreshToken(request)
+                IllegalStateException.class, () -> authService.refreshToken(refreshToken)
         );
 
         assertEquals("Refresh token already revoked", exception.getMessage());
 
-        verify(refreshTokenService, times(1)).verifyValidity(request.refreshToken());
+        verify(refreshTokenService, times(1)).verifyValidity(refreshToken);
 
         verifyNoInteractions(tokenService);
         verify(refreshTokenService, never()).createRefreshToken(any());
@@ -253,18 +250,18 @@ public class AuthServiceTest {
 
     @Test
     void refresh_WhenTokenExpired_throwsException() {
-        RefreshRequestDTO request = new RefreshRequestDTO(UUID.randomUUID());
+        UUID refreshToken = UUID.randomUUID();
 
-        when(refreshTokenService.verifyValidity(request.refreshToken()))
+        when(refreshTokenService.verifyValidity(refreshToken))
                 .thenThrow(new IllegalStateException("Refresh token expired"));
 
         IllegalStateException exception = assertThrows(
-                IllegalStateException.class, () -> authService.refreshToken(request)
+                IllegalStateException.class, () -> authService.refreshToken(refreshToken)
         );
 
         assertEquals("Refresh token expired", exception.getMessage());
 
-        verify(refreshTokenService, times(1)).verifyValidity(request.refreshToken());
+        verify(refreshTokenService, times(1)).verifyValidity(refreshToken);
 
         verifyNoInteractions(tokenService);
         verify(refreshTokenService, never()).createRefreshToken(any());
@@ -276,11 +273,11 @@ public class AuthServiceTest {
 
     @Test
     void logout_CallsRevokeToken() {
-        RefreshRequestDTO request = new RefreshRequestDTO(UUID.randomUUID());
+        UUID refreshToken = UUID.randomUUID();
 
-        authService.logout(request);
+        authService.logout(refreshToken);
 
-        verify(refreshTokenService, times(1)).revokeToken(request.refreshToken());
+        verify(refreshTokenService, times(1)).revokeToken(refreshToken);
     }
 
 }

@@ -2,7 +2,6 @@ package br.com.geziel.family_finance.domain.auth;
 
 import br.com.geziel.family_finance.domain.auth.dto.AuthResponseDTO;
 import br.com.geziel.family_finance.domain.auth.dto.LoginRequestDTO;
-import br.com.geziel.family_finance.domain.auth.dto.RefreshRequestDTO;
 import br.com.geziel.family_finance.domain.auth.dto.RegisterRequestDTO;
 import br.com.geziel.family_finance.domain.user.User;
 import br.com.geziel.family_finance.domain.user.UserRepository;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -81,26 +81,26 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponseDTO refreshToken(RefreshRequestDTO dto) {
-        RefreshToken validToken = refreshTokenService.verifyValidity(dto.refreshToken());
+    public AuthResponseDTO refreshToken(UUID refreshToken) {
+        RefreshToken validToken = refreshTokenService.verifyValidity(refreshToken);
         User user = validToken.getUser();
 
         validToken.setRevoked(true);
 
         String accessToken = tokenService.generateToken(user);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
         UserSummaryDTO summary = new UserSummaryDTO(user.getId(), user.getName(), user.getEmail());
 
         return new AuthResponseDTO(
                 accessToken,
-                refreshToken.getToken().toString(),
+                newRefreshToken.getToken().toString(),
                 "Bearer",
                 summary,
                 tokenService.getJwtExpirationMS()
         );
     }
 
-    public void logout(RefreshRequestDTO dto) {
-        refreshTokenService.revokeToken(dto.refreshToken());
+    public void logout(UUID refreshToken) {
+        refreshTokenService.revokeToken(refreshToken);
     }
 }
