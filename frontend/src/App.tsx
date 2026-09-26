@@ -1,12 +1,17 @@
 import { Routes, Route } from 'react-router-dom';
-import { StatusPage } from './features/status'
+import { AuthPage, ProtectedRoute } from './features/auth';
+import { StatusPage, HomePage } from './features/status'
 
 export function App() {
   return (
     <Routes>
+      <Route path="/login" element={ <AuthPage/> } />
+      <Route path="/ping" element={ <StatusPage/> } />
       <Route path="/"
              element={
-          <StatusPage/>
+        <ProtectedRoute>
+          <HomePage/>
+        </ProtectedRoute>
       }/>
 
       <Route path="*" element={ <h1> Error 404 - Route does not exist </h1> } />
