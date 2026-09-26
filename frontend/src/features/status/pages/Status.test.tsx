@@ -1,16 +1,28 @@
 import { render, screen } from '@testing-library/react';
-import { StatusPage } from './StatusPage.tsx';
+import { vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import { StatusPage } from './StatusPage';
 import { pingApi } from '../api/statusApi';
 
-vi.mock('./api/statusApi');
+vi.mock('../api/statusApi', () => ({
+  pingApi: vi.fn(),
+}));
 
-describe('Integration test', () => {
-    it('should show API response', async () => {
-        vi.mocked(pingApi()).mockResolvedValue({timestamp: 'Mock response'});
+describe('StatusPage Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-        render(<StatusPage />);
+  it('should show API response', async () => {
+    (pingApi as vi.Mock).mockResolvedValue({ timestamp: 'ok' });
 
-        const messageElement = await screen.findByText('Mock response');
-        expect(messageElement).toBeVisible();
-    });
+    render(
+        < MemoryRouter >
+          < StatusPage />
+        < /MemoryRouter >
+    );
+
+    const messageElement = await screen.findByText(/ok/i);
+    expect(messageElement).toBeInTheDocument();
+  });
 });

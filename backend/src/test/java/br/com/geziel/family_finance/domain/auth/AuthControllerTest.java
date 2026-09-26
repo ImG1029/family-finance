@@ -39,7 +39,7 @@ class AuthControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.refreshToken").doesNotExist())
                 .andExpect(cookie().exists("refreshToken"))
                 .andExpect(cookie().httpOnly("refreshToken", true))
-                .andExpect(cookie().secure("refreshToken", true));
+                .andExpect(cookie().secure("refreshToken", false));
     }
 
     @Test
