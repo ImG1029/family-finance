@@ -13,12 +13,9 @@ on:
     branches:
       - main
       - dev
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-ci.yaml'
 
 jobs:
-  build-and-test:
+  build-and-test-backend:
     runs-on: ubuntu-22.04
     defaults:
       run:
