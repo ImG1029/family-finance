@@ -9,7 +9,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<String | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { pingApi } from '../api/statusApi';
 
 export function StatusPage() {
-  const navigate = useNavigate();
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

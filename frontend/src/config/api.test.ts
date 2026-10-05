@@ -70,6 +70,7 @@ describe('Axios Interceptors', () => {
             await api.get(URL_PING);
             expect.fail('Requisition should have failed.');
         } catch (error) {
+            console.log(error)
             expect(localStorage.getItem('access_token')).toBeNull();
             expect(window.location.href).toBe('/login');
         }
