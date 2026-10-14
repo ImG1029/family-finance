@@ -63,14 +63,12 @@ describe('Axios Interceptors', () => {
 
         mockApi.onGet(URL_PING).replyOnce(403);
 
-        // O refresh token falha na instância global
         mockGlobal.onPost(URL_REFRESH).replyOnce(403);
 
         try {
             await api.get(URL_PING);
             expect.fail('Requisition should have failed.');
-        } catch (error) {
-            console.log(error)
+        } catch {
             expect(localStorage.getItem('access_token')).toBeNull();
             expect(window.location.href).toBe('/login');
         }
