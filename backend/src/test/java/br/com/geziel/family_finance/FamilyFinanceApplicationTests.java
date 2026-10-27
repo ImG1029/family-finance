@@ -2,9 +2,11 @@ package br.com.geziel.family_finance;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-class FamilyFinanceApplicationTests {
+@ActiveProfiles("test")
+class FamilyFinanceApplicationTests extends BaseIntegrationTest {
 
 	@Test
 	void contextLoads() {

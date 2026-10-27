@@ -1,32 +1,21 @@
-import { useState, useEffect } from 'react';
-import { fetchHello } from './services/api';
+import { Routes, Route } from 'react-router-dom';
+import { AuthPage, ProtectedRoute } from './features/auth';
+import { StatusPage, HomePage } from './features/status'
 
 export function App() {
-  const [message, setMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchHello()
-      .then(setMessage)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, []);
-
-  if (loading) {
-    return <p>Conectando ao Spring Boot...</p>;
-  }
-
-  if (error) {
-    return <p style={{ color: 'red' }}>Falha na conexão: {error}</p>
-  }
-
   return (
-      <div>
-        <h1>Integração React + Spring Boot</h1>
-        <p>Hora da resposta: <strong>{message.timestamp}</strong> </p>
-      </div>
+    <Routes>
+      <Route path="/login" element={ <AuthPage/> } />
+      <Route path="/ping" element={ <StatusPage/> } />
+      <Route path="/"
+             element={
+        <ProtectedRoute>
+          <HomePage/>
+        </ProtectedRoute>
+      }/>
 
+      <Route path="*" element={ <h1> Error 404 - Route does not exist </h1> } />
+    </Routes>
   );
 }
 

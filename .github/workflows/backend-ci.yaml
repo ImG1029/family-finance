@@ -5,18 +5,17 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yaml'
   pull_request:
     branches:
       - main
-    paths:
-      - 'backend/**'
-      - '.github/worklows/backend-ci.yaml'
+      - dev
 
 jobs:
-  build-and-test:
+  build-and-test-backend:
     runs-on: ubuntu-22.04
     defaults:
       run:
