@@ -8,7 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +27,7 @@ public class User implements UserDetails {
     @NotNull
     @Email
     private String email;
+
     @NotNull
     private String name;
 
@@ -34,19 +35,29 @@ public class User implements UserDetails {
     @NotNull
     private String password;
 
+    @Column(name = "is_active")
+    private boolean isActive;
+
     @NotNull
-    @Column(name = "created_at")
-    private LocalDateTime CreatedAt = LocalDateTime.now();
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @NotNull
+    @Column(name = "last_login")
+    private Instant lastLogin;
 
     public User() {
     }
 
-    public User(UUID id, String email, String name, String password, LocalDateTime createdAt) {
+    public User(UUID id, String email, String name, String password, Instant createdAt) {
         this.id = id;
         this.email = email;
         this.name = name;
         this.password = password;
-        CreatedAt = createdAt;
+        this.createdAt = createdAt;
     }
 
     public UUID getId() {
@@ -78,18 +89,38 @@ public class User implements UserDetails {
         return password;
     }
 
-
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return CreatedAt;
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        CreatedAt = createdAt;
+    public Instant getCreatedAt() {
+        return createdAt;
     }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Instant getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(Instant lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -118,6 +149,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isActive;
     }
 }

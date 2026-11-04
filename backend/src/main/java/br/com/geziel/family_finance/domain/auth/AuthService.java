@@ -13,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -44,6 +44,8 @@ public class AuthService {
         String accessToken = tokenService.generateToken(user);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
+        user.setLastLogin(Instant.now());
+
         return new AuthResponseDTO(
                 accessToken,
                 refreshToken.getToken().toString(),
@@ -55,6 +57,8 @@ public class AuthService {
 
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO dto) {
+        Instant now = Instant.now();
+
         if (userRepository.existsByEmail(dto.email())) {
             throw new IllegalArgumentException("Email already used");
         }
@@ -63,7 +67,8 @@ public class AuthService {
         newUser.setName(dto.name());
         newUser.setEmail(dto.email());
         newUser.setPassword(passwordEncoder.encode(dto.password()));
-        newUser.setCreatedAt(LocalDateTime.now());
+        newUser.setCreatedAt(now);
+        newUser.setLastLogin(now);
 
         User user = userRepository.save(newUser);
         UserSummaryDTO summary = new UserSummaryDTO(user.getId(), user.getName(), user.getEmail());

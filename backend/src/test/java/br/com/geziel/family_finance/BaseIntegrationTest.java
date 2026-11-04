@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import tools.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -54,7 +54,9 @@ public class BaseIntegrationTest {
         testUser.setName("Test User");
         testUser.setEmail("test@email.com");
         testUser.setPassword(passwordEncoder.encode("Password123"));
-        testUser.setCreatedAt(LocalDateTime.now());
+        testUser.setCreatedAt(Instant.now());
+        testUser.setLastLogin(Instant.now());
+        testUser.setActive(true);
 
         userRepository.save(testUser);
     }
