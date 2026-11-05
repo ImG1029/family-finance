@@ -3,23 +3,19 @@ package br.com.geziel.family_finance.domain.user;
 import br.com.geziel.family_finance.domain.auth.TokenService;
 import br.com.geziel.family_finance.domain.user.dto.UserSummaryDTO;
 import br.com.geziel.family_finance.domain.user.dto.UserUpdateDTO;
-import io.jsonwebtoken.Claims;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Service
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
-    private final TokenService tokenService;
 
-    public UserService(UserRepository userRepository, TokenService tokenService) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.tokenService = tokenService;
     }
 
     public UserSummaryDTO getUser(User loggedUser) {
